@@ -1,4 +1,4 @@
-# Pig_EAT_scRNAseq
+# Pig Epicardial Adipose Tissue scRNAseq
 This repository contains the codes for processing the single-cell RNA sequencing data of Epicardial Adipose Tissue (EAT) from Sus scrofa (Pig) over 4 treatment conditions.
 
 ## Significance
