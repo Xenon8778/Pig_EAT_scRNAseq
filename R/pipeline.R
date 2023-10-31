@@ -261,32 +261,64 @@ DimPlot(so, reduction = "umap", label = TRUE, repel = TRUE, label.size = 5, pt.s
 dev.off()
 
 #Cluster Visualization
-jpeg('output/Pig_cluster_Celltype.jpeg',width = 1200, height = 1200, quality = 100,pointsize = 100)
-DimPlot(so, reduction = "umap", pt.size = 0.5, group.by = 'cell_types')+
-  ggtitle('Cell Type Cluster (UMAP)')+
-  geom_text(aes(x = 9, y = -3.5, label = "B cells"),size = 8)+
-  geom_text(aes(x = 1, y = 7.3, label = "Beige adipocytes"),size = 8)+
-  geom_text(aes(x = 0.3, y = 2, label = "Endothelial cells"),size = 8)+
-  geom_text(aes(x = 7.5, y = 2, label = "Erythroid cells"),size = 8)+
-  geom_text(aes(x = -4.5, y = -6.5, label = "Fibroblasts"),size = 8)+
-  geom_text(aes(x = 5.5, y = -8, label = "Macrophages"),size = 8)+
-  geom_text(aes(x = -6.5, y = 6, label = "Mesenchymal cells"),size = 8)+
-  geom_text(aes(x = 7.5, y = -6, label = "Smooth muscle cells"),size = 8)+
-  geom_text(aes(x = 1, y = -2.6, label = "T cells"),size = 8)+
-  theme(axis.title = element_text(size = 30),
-        plot.title = element_text(size=30),
-        axis.text = element_text(size = 20),
-        legend.text = element_text(size = 20),
-        legend.key.size = unit(1.5, 'cm'))
+jpeg('Results/9-18-23_Publication_Figures//Pig_cluster_Celltype.jpeg',width = 2000, height = 2000, quality = 100,pointsize = 10)
+DimPlot(so, reduction = "umap", pt.size = 3, group.by = 'cell_types',)+
+  geom_text(aes(x = 9, y = -3.7, label = "B cells"),size = 20)+
+  geom_text(aes(x = 1, y = 7.3, label = "Beige adipocytes"),size = 20)+
+  geom_text(aes(x = -6, y = -1, label = "Endothelial cells"),size = 20)+
+  geom_text(aes(x = 8.2, y = 2, label = "Erythroid cells"),size = 20)+
+  geom_text(aes(x = -5, y = -7, label = "Fibroblasts"),size = 20)+
+  geom_text(aes(x = 6, y = -8, label = "Macrophages"),size = 20)+
+  geom_text(aes(x = -6.3, y = 6, label = "Mesenchymal"),size = 20)+
+  geom_text(aes(x = -7.6, y = 5, label = "cells"),size = 20,)+
+  geom_text(aes(x = 8, y = -6, label = "Smooth muscle cells"),size = 20)+
+  geom_text(aes(x = 1, y = -2.6, label = "T cells"),size = 20)+
+  theme(axis.title = element_text(size = 60),
+        axis.line = element_line(linewidth = 2),
+        axis.ticks = element_line(linewidth = 1),
+        axis.text = element_text(size = 40),
+        plot.title = element_blank(),
+        legend.text = element_text(size = 60),
+        legend.key.size = unit(2, 'cm'),
+        legend.position=c(.65,.83))+
+  guides(color = guide_legend(override.aes=list(shape = 15,size = 10)))
 dev.off()
 
-#Violin plots showing proportions of cells
+
+jpeg('Results/9-18-23_Publication_Figures/Pig_batches_final.jpeg',width = 2000, height = 2000, quality = 100,pointsize = 10)
+DimPlot(so, reduction = "umap", pt.size = 3, group.by = 'Batches')+
+  theme(axis.title = element_text(size = 60),
+        axis.line = element_line(linewidth = 2),
+        axis.ticks = element_line(linewidth = 1),
+        axis.text = element_text(size = 40),
+        plot.title = element_blank(),
+        legend.text = element_text(size = 80),
+        legend.key.size = unit(3, 'cm'),
+        legend.position=c(.77,.85))+
+  guides(color = guide_legend(override.aes=list(shape = 15,size = 10)))
+dev.off()
+
+
+So_endo = subset(so, idents = c('Endothelial cells'))
+jpeg('Results/Other_Figures/Pig_Endothelial.jpeg',width = 2000, height = 2000, quality = 100,pointsize = 10)
+DimPlot(So_endo, reduction = "umap", label.size = 5, pt.size = 5, group.by = 'Batches')+
+  theme(axis.title = element_text(size = 40),
+        plot.title = element_blank(),
+        legend.text = element_text(size = 60),
+        legend.key.size = unit(3, 'cm'),
+        legend.position=c(.8,.9),
+        axis.ticks = element_blank(),
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank())+
+  guides(color = guide_legend(override.aes=list(shape = 15,size = 15)))
+dev.off()
+
+#Violin plots showing nFeature_RNA of cells
 jpeg('output/Pig_vln_celltype.jpeg',width = 1000, height = 800, quality = 100,pointsize = 100)
 VlnPlot(so, features = c("nFeature_RNA"), split.by = "Exercised",pt.size = 0)
 dev.off()
 
 #Box plots showing number of Feature genes detected in each cell type
-
 jpeg('output/Pig_Boxplot_nFeatures.jpeg',width = 1200, height = 800, quality = 100,pointsize = 100)
 Percelltype = ggplot(so@meta.data, aes(x = nFeature_RNA, y = cell_types, fill=Exercised)) +
   coord_flip() +
@@ -304,7 +336,7 @@ Percelltype = ggplot(so@meta.data, aes(x = nFeature_RNA, y = cell_types, fill=Ex
 Percelltype
 dev.off()
 
-#Histgram Graph cell type Percentage
+#Histogram Graph cell type Percentage
 celltypes = rep(unique(so@meta.data$cell_types),2)
 celltypedf = as.data.frame(celltypes)
 colnames(celltypedf) = 'Cell_Types'
@@ -322,56 +354,44 @@ for (i in unique(celltypes)){
   num = num+1
 }
 
-jpeg('output/Pig_Barplot_celltypePerc.jpeg',width = 800, height = 1200, quality = 200,pointsize = 100)
-Barplot = ggplot(celltypedf,aes(x = Cell_Types,y = Cells,fill = Type))+
-  geom_bar(stat="identity",position=position_dodge())+
-  ggtitle('Percentage Cells Types')+
-  xlab('Cell Types')+
-  ylab('Percent cell')+
-  theme(axis.title = element_text(size = 20),
-        plot.title = element_text(color="red", size=30),
-        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
-        axis.text = element_text(size = 20),
-        legend.text = element_text(size = 20),
-        legend.key.size = unit(1, 'cm'))
-Barplot
+# Bar plots
+jpeg('Results/2-6-23_Poster_Figures/Pig_Barplot_celltype.jpeg',width = 2000, height = 3000, quality = 100,pointsize = 10)
+gg1 = dittoBarPlot(so,var = "Batches", group.by = "cell_types",scale = "count")+
+  scale_fill_manual("Batches",values=c("#F68282", "#7CAE00", "#00BFC4","#C77CFF"))+
+  xlab("Cell Type")+
+  theme(text = element_text(size = 50),
+        legend.text = element_text(size = 50),
+        legend.key.size = unit(3,"cm"),
+        legend.position = c(.9,.85),
+        plot.title = element_blank(),
+        axis.text.x = element_blank(),
+        axis.title = element_text(size = 50, face = "bold"))
+gg2 = dittoBarPlot(so,var = "Batches", group.by = "cell_types")+
+  scale_fill_manual("Batches",values=c("#F68282", "#7CAE00", "#00BFC4","#C77CFF"))+
+  xlab("Cell Type")+
+  theme(text = element_text(size = 50),
+        legend.position = "none",
+        plot.title = element_blank(),
+        axis.text.x = element_text(size = 50, angle = 90, vjust = 0.5, hjust=1),
+        axis.title = element_text(size = 50, face = "bold"))
+grid.arrange(gg1,gg2, ncol=1)
+dev.off()
+
+#Stacked Violin plot
+features <- c("REEP1", "FLT1", "SPON1", "ADGRD1",
+              "SYNPO2", "TPT1", "BLNK", "SYK","PFKFB3")
+
+jpeg('Results/2-6-23_Poster_Figures/Pig_Stack_VlnMarker.jpeg',width = 2000,
+     height = 3000, quality = 100, pointsize = 10)
+VlnPlot(so, features, stack = TRUE, sort = TRUE, flip = TRUE) +
+  theme(text = element_text(size = 50),
+        legend.position = "none",
+        axis.text.y.right = element_text(size = 50),
+        axis.text.x = element_text(size = 50, angle = 90, vjust = 0.5, hjust=1),
+        axis.title = element_text(size = 70))
 dev.off()
 
 
-#Histogram Graph cell type number
-celltypes = rep(unique(so@meta.data$cell_types),2)
-celltypedf = as.data.frame(celltypes)
-colnames(celltypedf) = 'Cell_Types'
-celltypedf[['Cells']] = 0
-celltypedf[['Type']] = 0
-num=1
-for (i in unique(celltypes)){
-  celltypedf[['Type']][num] = 'Ex'
-  x = subset(so,idents = i,subset = Exercised == "Ex")
-  celltypedf[['Cells']][num] = dim(x)[2]
-  num = num+1
-}
-for (i in unique(celltypes)){
-  celltypedf[['Type']][num] = 'Sed'
-  x = subset(so,idents = i,subset = Exercised == "Sed")
-  celltypedf[['Cells']][num] = dim(x)[2]
-  num = num+1
-}
-
-jpeg('output/Pig_Barplot_celltype.jpeg',width = 800, height = 1200, quality = 200,pointsize = 100)
-Barplot = ggplot(celltypedf,aes(x = Cell_Types,y = Cells,fill = Type))+
-  geom_bar(stat="identity",position=position_dodge())+
-  ggtitle('Number of Cells Types')+
-  xlab('Cell Types')+
-  ylab('No. of cells')+
-  theme(axis.title = element_text(size = 20),
-        plot.title = element_text(color="red", size=30),
-        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
-        axis.text = element_text(size = 20),
-        legend.text = element_text(size = 20),
-        legend.key.size = unit(1, 'cm'))
-Barplot
-dev.off()
 
 # Checkpoint ####
 #Sub-clustering endothelial cells

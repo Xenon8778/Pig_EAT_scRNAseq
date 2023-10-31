@@ -1,0 +1,317 @@
+---
+title: "CellChat"
+output: html_document
+date: "2022-12-21"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r Loading Libraries, message=FALSE, warning=FALSE}
+library(CellChat)
+library(patchwork)
+library(Seurat)
+options(stringsAsFactors = FALSE)
+library("gridExtra") 
+```
+
+```{r}
+so = readRDS("output/pig_v3.rds")
+#so_sub = subset(so, subset = cell_types == c('Smooth muscle cells','Endothelial cells','Beige adipocytes'))
+so_sub = so
+```
+
+```{r}
+Ex = subset(so_sub, subset = Exercised == "Ex")
+Sed = subset(so_sub, subset = Exercised == "Sed")
+
+N_Ex = subset(so_sub, subset = Batches == "N-Ex")
+N_Sed = subset(so_sub, subset = Batches == "N-Sed")
+O_Ex = subset(so_sub, subset = Batches == "O-Ex")
+O_Sed = subset(so_sub, subset = Batches == "O-Sed")
+```
+
+```{r}
+# Select Database
+CellChatDB <- CellChatDB.human
+CellChatDB.use <- CellChatDB
+#CellChatDB.use <- subsetDB(CellChatDB, search = "Secreted Signaling")
+#CellChatDB.use <- subsetDB(CellChatDB, search = "ECM-Receptor")
+#CellChatDB.use <- subsetDB(CellChatDB, search = "Cell-Cell Contact")
+
+```
+
+```{r}
+# Comparative CellChat
+## Ex versus Sed
+cellchat.Sed = createCellChat(object = Sed@assays$RNA@counts, 
+                               meta = Sed@meta.data, group.by = "cell_types")
+
+cellchat.Sed@DB <- CellChatDB.use
+cellchat.Sed <- subsetData(cellchat.Sed) 
+future::plan("multicore", workers = 8) # do parallel
+cellchat.Sed <- identifyOverExpressedGenes(cellchat.Sed)
+cellchat.Sed <- identifyOverExpressedInteractions(cellchat.Sed)
+## Compute the communication probability and infer cellular communication network
+cellchat.Sed <- computeCommunProb(cellchat.Sed) 
+
+## Infer the cell-cell communication at a signaling pathway level
+cellchat.Sed <- computeCommunProbPathway(cellchat.Sed)
+
+## Calculate the aggregated cell-cell communication network
+cellchat.Sed <- aggregateNet(cellchat.Sed)
+
+
+cellchat.Ex = createCellChat(object = Ex@assays$RNA@counts, 
+                                meta = Ex@meta.data, group.by = "cell_types")
+cellchat.Ex@DB <- CellChatDB.use
+cellchat.Ex <- subsetData(cellchat.Ex)
+future::plan("multicore", workers = 8) # do parallel
+cellchat.Ex <- identifyOverExpressedGenes(cellchat.Ex)
+cellchat.Ex <- identifyOverExpressedInteractions(cellchat.Ex)
+## Compute the communication probability and infer cellular communication network
+cellchat.Ex <- computeCommunProb(cellchat.Ex) 
+
+## Infer the cell-cell communication at a signaling pathway level
+cellchat.Ex <- computeCommunProbPathway(cellchat.Ex)
+
+## Calculate the aggregated cell-cell communication network
+cellchat.Ex <- aggregateNet(cellchat.Ex)
+
+```
+
+```{r}
+# Comparative CellChat
+## N-O
+cellchat.N_Ex = createCellChat(object = N_Ex@assays$RNA@counts, 
+                               meta = N_Ex@meta.data, group.by = "cell_types")
+
+cellchat.N_Ex@DB <- CellChatDB.use
+cellchat.N_Ex <- subsetData(cellchat.N_Ex) 
+future::plan("multicore", workers = 4) # do parallel
+cellchat.N_Ex <- identifyOverExpressedGenes(cellchat.N_Ex)
+cellchat.N_Ex <- identifyOverExpressedInteractions(cellchat.N_Ex)
+## Compute the communication probability and infer cellular communication network
+cellchat.N_Ex <- computeCommunProb(cellchat.N_Ex) 
+
+## Infer the cell-cell communication at a signaling pathway level
+cellchat.N_Ex <- computeCommunProbPathway(cellchat.N_Ex)
+
+## Calculate the aggregated cell-cell communication network
+cellchat.N_Ex <- aggregateNet(cellchat.N_Ex)
+
+
+cellchat.N_Sed = createCellChat(object = N_Sed@assays$RNA@counts, 
+                                meta = N_Sed@meta.data, group.by = "cell_types")
+cellchat.N_Sed@DB <- CellChatDB.use
+cellchat.N_Sed <- subsetData(cellchat.N_Sed)
+future::plan("multicore", workers = 4) # do parallel
+cellchat.N_Sed <- identifyOverExpressedGenes(cellchat.N_Sed)
+cellchat.N_Sed <- identifyOverExpressedInteractions(cellchat.N_Sed)
+## Compute the communication probability and infer cellular communication network
+cellchat.N_Sed <- computeCommunProb(cellchat.N_Sed) 
+
+## Infer the cell-cell communication at a signaling pathway level
+cellchat.N_Sed <- computeCommunProbPathway(cellchat.N_Sed)
+
+## Calculate the aggregated cell-cell communication network
+cellchat.N_Sed <- aggregateNet(cellchat.N_Sed)
+
+
+cellchat.O_Ex = createCellChat(object = O_Ex@assays$RNA@counts, 
+                               meta = O_Ex@meta.data, group.by = "cell_types")
+cellchat.O_Ex@DB <- CellChatDB.use
+cellchat.O_Ex <- subsetData(cellchat.O_Ex) 
+future::plan("multicore", workers = 4) # do parallel
+cellchat.O_Ex <- identifyOverExpressedGenes(cellchat.O_Ex)
+cellchat.O_Ex <- identifyOverExpressedInteractions(cellchat.O_Ex)
+## Compute the communication probability and infer cellular communication network
+cellchat.O_Ex <- computeCommunProb(cellchat.O_Ex) 
+
+## Infer the cell-cell communication at a signaling pathway level
+cellchat.O_Ex <- computeCommunProbPathway(cellchat.O_Ex)
+
+## Calculate the aggregated cell-cell communication network
+cellchat.O_Ex <- aggregateNet(cellchat.O_Ex)
+
+
+cellchat.O_Sed = createCellChat(object = O_Sed@assays$RNA@counts, 
+                                meta = O_Sed@meta.data, group.by = "cell_types")
+cellchat.O_Sed@DB <- CellChatDB.use
+cellchat.O_Sed <- subsetData(cellchat.O_Sed) 
+future::plan("multicore", workers = 4) # do parallel
+cellchat.O_Sed <- identifyOverExpressedGenes(cellchat.O_Sed)
+cellchat.O_Sed <- identifyOverExpressedInteractions(cellchat.O_Sed)
+## Compute the communication probability and infer cellular communication network
+cellchat.O_Sed <- computeCommunProb(cellchat.O_Sed) 
+
+## Infer the cell-cell communication at a signaling pathway level
+cellchat.O_Sed <- computeCommunProbPathway(cellchat.O_Sed)
+
+## Calculate the aggregated cell-cell communication network
+cellchat.O_Sed <- aggregateNet(cellchat.O_Sed)
+```
+
+```{r}
+object.list <- list(O_Sed = cellchat.O_Sed, O_Ex = cellchat.O_Ex)
+
+cellchat <- mergeCellChat(object.list, add.names = names(object.list))
+```
+
+```{r}
+gg1 <- compareInteractions(cellchat, show.legend = F, group = c(1,2))
+gg2 <- compareInteractions(cellchat, show.legend = F, group = c(1,2), measure = "weight")
+gg1 + gg2
+```
+
+```{r}
+gg1 <- netVisual_heatmap(cellchat)
+#> Do heatmap based on a merged object
+gg2 <- netVisual_heatmap(cellchat, measure = "weight")
+#> Do heatmap based on a merged object
+gg1 + gg2
+```
+
+```{r}
+## Compare the overall information flow of each signaling pathway
+
+gg1 <- rankNet(cellchat, mode = "comparison", stacked = T, do.stat = TRUE)
+gg2 <- rankNet(cellchat, mode = "comparison", stacked = F, do.stat = TRUE)
+gg1 + gg2
+```
+
+```{r}
+## Identify differential signaling by using differential expression analysis
+
+netVisual_bubble(cellchat, sources.use = 4, targets.use = c(5:11),  comparison = c(1, 2), angle.x = 45)
+#> Comparing communications on a merged object
+
+
+gg1 <- netVisual_bubble(cellchat, sources.use = 4, targets.use = c(5:11),  comparison = c(1, 2), max.dataset = 2, title.name = "Increased signaling in Sed", angle.x = 45, remove.isolate = T)
+#> Comparing communications on a merged object
+gg2 <- netVisual_bubble(cellchat, sources.use = 4, targets.use = c(5:11),  comparison = c(1, 2), max.dataset = 1, title.name = "Increased signaling in Ex", angle.x = 45, remove.isolate = T)
+#> Comparing communications on a merged object
+gg1 + gg2
+```
+
+```{r}
+Common_pathways = intersect(cellchat@netP$Sed$pathways,cellchat@netP$Ex$pathways)
+nam = paste("CellChat/Diff_Ex_Sed/Chord_",pathways.show,".jpeg")
+
+for (i in Common_pathways){
+  pathways.show <- c(i) 
+  par(mfrow = c(1,2), xpd=TRUE)
+  nam = paste("CellChat/Diff_Ex_Sed/Chord_",i,".jpeg")
+  jpeg(nam, width = 6000, height = 3000, res = 400)
+  par(mfrow = c(1,2), xpd=TRUE)
+  gg1 = netVisual_aggregate(object.list[[1]], signaling = pathways.show, layout = "chord",
+                            signaling.name = paste(pathways.show, names(object.list)[1]),
+                            small.gap = 1, big.gap = 10,show.legend = T,
+                            point.size = 0.5, legend.pos.x = 170,legend.pos.y = 10)
+
+  gg2 = netVisual_aggregate(object.list[[2]], signaling = pathways.show, layout = "chord",
+                            signaling.name = paste(pathways.show, names(object.list)[2]),
+                            small.gap = 1, big.gap = 10, point.size = 0.5, 
+                            legend.pos.x = 10,legend.pos.y = 10)
+  dev.off()
+  
+}
+```
+
+```{r}
+pathways.show <- c('CDH') 
+weight.max <- getMaxWeight(object.list, slot.name = c("netP"), attribute = pathways.show) # control the edge weights across different datasets
+par(mfrow = c(1,2), xpd=TRUE)
+for (i in 1:length(object.list)) {
+  netVisual_aggregate(object.list[[i]], signaling = pathways.show, layout = "circle", edge.weight.max = weight.max[1], edge.width.max = 10, signaling.name = paste(pathways.show, names(object.list)[i]))
+}
+```
+
+```{r}
+# Chord diagram
+pathways.show <- c("CDH") 
+par(mfrow = c(1,2), xpd=TRUE)
+
+nam = paste("CellChat/Immun_Ex_Sed/Chord_",pathways.show,".jpeg")
+jpeg(nam, width = 6000, height = 3000, res = 400)
+par(mfrow = c(1,2), xpd=TRUE)
+gg1 = netVisual_aggregate(object.list[[1]], signaling = pathways.show, layout = "chord",
+                          signaling.name = paste(pathways.show, names(object.list)[1]),
+                          small.gap = 1, big.gap = 10,show.legend = T,
+                          point.size = 0.2, legend.pos.x = 170,legend.pos.y = 30)
+
+gg2 = netVisual_aggregate(object.list[[2]], signaling = pathways.show, layout = "chord",
+                          signaling.name = paste(pathways.show, names(object.list)[2]),
+                          small.gap = 1, big.gap = 10,
+                          point.size = 0.2)
+dev.off()
+
+```
+
+## Individual figures
+```{r}
+object.list <- list(Sed = cellchat.Sed, Ex = cellchat.Ex)
+
+cellchat <- mergeCellChat(object.list, add.names = names(object.list))
+Common_pathways = intersect(cellchat@netP$Sed$pathways,cellchat@netP$Ex$pathways)
+Common_pathways
+```
+
+
+```{r}
+library(circlize)
+pathways.show <- c('PECAM1') 
+par(mfrow = c(1,2), xpd=TRUE)
+nam = paste0("Results/9-18-23_Publication_Figures/Chord_Sed_",pathways.show,".jpeg")
+jpeg(nam, width = 2000, height = 2000, res = 300)
+netVisual_chord_cell(object.list[[1]], signaling = pathways.show,
+                     title.name = paste0(pathways.show," signaling in Sedentary"),
+                          show.legend = F, lab.cex = 1)
+dev.off()
+
+pathways.show <- c('NCAM') 
+nam = paste0("Results/9-18-23_Publication_Figures/Chord_Sed_",pathways.show,".jpeg")
+jpeg(nam, width = 2000, height = 2000, res = 300)
+netVisual_chord_cell(object.list[[1]], signaling = pathways.show,
+                     title.name = paste0(pathways.show," signaling in Sedentary"),
+                          show.legend = F, lab.cex = 1)
+dev.off()
+
+pathways.show <- c('IGF') 
+nam = paste0("Results/9-18-23_Publication_Figures/Chord_Sed_",pathways.show,".jpeg")
+jpeg(nam, width = 2000, height = 2000, res = 300)
+netVisual_chord_cell(object.list[[1]], signaling = pathways.show,
+                     title.name = paste0(pathways.show," signaling in Sedentary"),
+                          show.legend = F, lab.cex = 1)
+dev.off()
+```
+
+```{r}
+pathways.show <- c('PECAM1') 
+nam = paste0("Results/9-18-23_Publication_Figures/Chord_Ex_",pathways.show,".jpeg")
+jpeg(nam, width = 2000, height = 2000, res = 300)
+netVisual_chord_cell(object.list[[2]], signaling = pathways.show,
+                     title.name = paste0(pathways.show," signaling in Exercised"),
+                          show.legend = F, lab.cex = 1)
+dev.off()
+
+pathways.show <- c('NCAM') 
+nam = paste0("Results/9-18-23_Publication_Figures/Chord_Ex_",pathways.show,".jpeg")
+jpeg(nam, width = 2000, height = 2000, res = 300)
+netVisual_chord_cell(object.list[[2]], signaling = pathways.show,
+                     title.name = paste0(pathways.show," signaling in Exercised"),
+                          show.legend = F, lab.cex = 1)
+dev.off()
+
+pathways.show <- c('IGF') 
+nam = paste0("Results/9-18-23_Publication_Figures/Chord_Ex_",pathways.show,".jpeg")
+jpeg(nam, width = 2000, height = 2000, res = 300)
+netVisual_chord_cell(object.list[[2]], signaling = pathways.show,
+                     title.name = paste0(pathways.show," signaling in Exercised"),
+                          show.legend = F, lab.cex = 1)
+dev.off()
+```
+
+
+
