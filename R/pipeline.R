@@ -6,6 +6,9 @@ library(celldex)
 library(readxl)
 library(ggplot2)
 library(SeuratDisk)
+library(dittoSeq)
+library(gridExtra)
+library(scales)
 
 # Reading H5 files ####
 adata = Read10X_h5("count/filtered_feature_bc_matrix.h5")
@@ -411,5 +414,38 @@ DoHeatmap(So_endo, features = top5$gene,size = 10)+
   guides(color = FALSE)
 dev.off()
 
+#Sub-clustering Mesenchymal cells
+so = readRDS("output/pig_v3.rds")
+so_foranno = subset(so, subset = cell_types == 'Mesenchymal cells')
+Batches = so_foranno$Batches
+source("../Codes/scType_anno.R")
+so_foranno = Annotate_cells(so_foranno@assays$RNA@counts,
+                            res = 1, tissue = 'Heart', Scale = T)
+so_foranno$Batches = factor(Batches)
+Idents(object = so_foranno) <- "scType_anno"
+DimPlot(so_foranno, reduction = "umap", pt.size = 1, label = F, repel = TRUE, group.by = 'scType_anno')
 
+levels(so_foranno)
+new_names = c("Erythroblasts","Stromal cells","Epicardial fat cells","Epicardial fat cells",
+              "Endocardial cells")
+names(new_names) <- levels(so_foranno)
+so_renamed <- RenameIdents(so_foranno, new_names)
+so_renamed$new_names = so_renamed@active.ident
+#so_renamed = subset(so_renamed, subset = new_names == c("Erythroblasts","Stromal cells","Epicardial fat cells","Endocardial cells"))
+DimPlot(so_renamed, reduction = "umap", pt.size = 1, label = F, repel = TRUE)
+
+png('Results/10-10-23_Publication_Figures/Mesenchymal Bar PLot.png', height = 4, width = 8,
+    units = 'in', res = 300)
+g1 = dittoBarPlot(so_renamed,var = "Batches", group.by = "new_names",scale = 'count')+
+  scale_fill_manual("Batches",values=hue_pal()(4)) + ggtitle("Counts")+ xlab("Cell Types")
+g2 = dittoBarPlot(so_renamed,var = "Batches", group.by = "new_names")+
+  scale_fill_manual("Batches",values=hue_pal()(4),drop= FALSE) + ggtitle("Percentages") + xlab("Cell Types")
+grid.arrange(g1, g2, ncol=2)
+dev.off()
+
+png('Results/10-10-23_Publication_Figures/Mesenchymal UMAP.png', height = 4, width = 7,
+    units = 'in', res = 300)
+DimPlot(so_renamed, group.by = 'new_names', reduction = "umap", pt.size = 1, label = F, repel = TRUE,)+
+  ggtitle("")
+dev.off()
 
