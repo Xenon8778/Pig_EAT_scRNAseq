@@ -48,7 +48,7 @@ so = readRDS("output/pig_Batches.rds")
 so[["percent.mt"]] <- PercentageFeatureSet(so, pattern = "^MT-")
 VlnPlot(so, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
 
-#Normalization
+# Normalization
 so <- NormalizeData(so)
 so <- FindVariableFeatures(so, selection.method = "vst", nfeatures = 2000)
 
@@ -61,11 +61,11 @@ so <- ScaleData(so, features = all.genes)
 so <- RunPCA(so, features = VariableFeatures(object = so))
 DimPlot(so, reduction = "pca")
 
-#Clustering
+# Clustering
 so <- FindNeighbors(so, dims = 1:10)
 so <- FindClusters(so, resolution = 0.5)
 
-#UMAP
+# UMAP
 so <- RunUMAP(so, dims = 1:10)
 DimPlot(so, reduction = "umap")
 
