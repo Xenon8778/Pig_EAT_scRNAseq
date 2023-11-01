@@ -8,8 +8,6 @@ Coronary artery disease (CAD) is a leading cause of death in women. However, the
 A function to auto-annotate clusters using the scType Database (https://doi.org/10.1038/s41467-022-28803-w) that was used to sub-cluster cell types.
 
 ## Referrence 
-- Seurat V3 
-  - https://doi.org/10.1016/j.cell.2019.05.031
+- Stuart and Butler et al. Comprehensive Integration of Single-Cell Data. Cell (2019) [Seurat V3] https://doi.org/10.1016/j.cell.2019.05.031
 
-- CellChatr 
-  - Suoqin Jin et al., Inference and analysis of cell-cell communication using CellChat. Nature Communications, 12:1088 (2021). https://www.nature.com/articles/s41467-021-21246-9
+- Suoqin Jin et al., Inference and analysis of cell-cell communication using CellChat. Nature Communications, 12:1088 (2021). https://www.nature.com/articles/s41467-021-21246-9
