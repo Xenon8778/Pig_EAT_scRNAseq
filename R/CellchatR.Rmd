@@ -16,13 +16,13 @@ options(stringsAsFactors = FALSE)
 library("gridExtra") 
 ```
 
-```{r}
+```{r Reading Seurat Object}
 so = readRDS("output/pig_v3.rds")
 #so_sub = subset(so, subset = cell_types == c('Smooth muscle cells','Endothelial cells','Beige adipocytes'))
 so_sub = so
 ```
 
-```{r}
+```{r Subsetting treatment groups}
 Ex = subset(so_sub, subset = Exercised == "Ex")
 Sed = subset(so_sub, subset = Exercised == "Sed")
 
@@ -32,7 +32,7 @@ O_Ex = subset(so_sub, subset = Batches == "O-Ex")
 O_Sed = subset(so_sub, subset = Batches == "O-Sed")
 ```
 
-```{r}
+```{r Initialising CellChat}
 # Select Database
 CellChatDB <- CellChatDB.human
 CellChatDB.use <- CellChatDB
@@ -155,7 +155,6 @@ cellchat.O_Sed <- aggregateNet(cellchat.O_Sed)
 
 ```{r}
 object.list <- list(O_Sed = cellchat.O_Sed, O_Ex = cellchat.O_Ex)
-
 cellchat <- mergeCellChat(object.list, add.names = names(object.list))
 ```
 
@@ -174,20 +173,17 @@ gg1 + gg2
 ```
 
 ```{r}
-## Compare the overall information flow of each signaling pathway
-
+## Compare the overall information flow of each signalling pathway
 gg1 <- rankNet(cellchat, mode = "comparison", stacked = T, do.stat = TRUE)
 gg2 <- rankNet(cellchat, mode = "comparison", stacked = F, do.stat = TRUE)
 gg1 + gg2
 ```
 
 ```{r}
-## Identify differential signaling by using differential expression analysis
-
+## Identify differential signalling by using differential expression analysis
 netVisual_bubble(cellchat, sources.use = 4, targets.use = c(5:11),  comparison = c(1, 2), angle.x = 45)
-#> Comparing communications on a merged object
 
-
+# Comparing communications on a merged object
 gg1 <- netVisual_bubble(cellchat, sources.use = 4, targets.use = c(5:11),  comparison = c(1, 2), max.dataset = 2, title.name = "Increased signaling in Sed", angle.x = 45, remove.isolate = T)
 #> Comparing communications on a merged object
 gg2 <- netVisual_bubble(cellchat, sources.use = 4, targets.use = c(5:11),  comparison = c(1, 2), max.dataset = 1, title.name = "Increased signaling in Ex", angle.x = 45, remove.isolate = T)
@@ -214,8 +210,7 @@ for (i in Common_pathways){
                             signaling.name = paste(pathways.show, names(object.list)[2]),
                             small.gap = 1, big.gap = 10, point.size = 0.5, 
                             legend.pos.x = 10,legend.pos.y = 10)
-  dev.off()
-  
+  dev.off() 
 }
 ```
 
@@ -287,7 +282,7 @@ netVisual_chord_cell(object.list[[1]], signaling = pathways.show,
 dev.off()
 ```
 
-```{r}
+```{r Pathways of Interest}
 pathways.show <- c('PECAM1') 
 nam = paste0("Results/9-18-23_Publication_Figures/Chord_Ex_",pathways.show,".jpeg")
 jpeg(nam, width = 2000, height = 2000, res = 300)
