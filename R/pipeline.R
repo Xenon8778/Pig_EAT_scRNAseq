@@ -10,11 +10,11 @@ library(dittoSeq)
 library(gridExtra)
 library(scales)
 
-# Reading H5 files ####
+# Reading aggregated H5 file ####
 adata = Read10X_h5("count/filtered_feature_bc_matrix.h5")
 so = CreateSeuratObject(adata)
 
-# annotating batches and treatment
+# Annotating batches and treatment
 batches = c()
 for (y in so@assays[["RNA"]]@counts@Dimnames[[2]]){
   if (stri_sub(y,-1) == 1){batches <- append(batches, 1)}
@@ -23,14 +23,12 @@ for (y in so@assays[["RNA"]]@counts@Dimnames[[2]]){
   if (stri_sub(y,-1) == 4){batches <- append(batches, 4)}
 }
 so[["Batches"]] = batches
-saveRDS(so, file = "output/pig_Batches.rds")
 
 Batches = so[["Batches"]]
 Batches = replace(Batches,Batches == "1", "N-Ex")
 Batches = replace(Batches,Batches == "2", "N-Sed")
 Batches = replace(Batches,Batches == "3", "O-Ex")
 Batches = replace(Batches,Batches == "4", "O-Sed")
-
 so[["Batches"]] = Batches
 
 Exercised = c()
@@ -39,13 +37,14 @@ for (i in so[["Batches"]]){
 }
 Exercised = replace(Exercised,Exercised == 1|Exercised == 3, "Ex")
 Exercised = replace(Exercised,Exercised == 2|Exercised == 4, "Sed")
-
 so[["Exercised"]] = Exercised
+
+saveRDS(so, file = "output/pig_Batches.rds")
 
 # Checkpoint ####
 so = readRDS("output/pig_Batches.rds")
 
-#Pre-processing
+#Pre-processing graphs
 so[["percent.mt"]] <- PercentageFeatureSet(so, pattern = "^MT-")
 VlnPlot(so, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
 
@@ -56,6 +55,7 @@ so <- FindVariableFeatures(so, selection.method = "vst", nfeatures = 2000)
 # Identify the 10 most highly variable genes
 top10 <- head(VariableFeatures(so), 10)
 
+# Scaling and Dimensionality Reduction
 all.genes <- rownames(so)
 so <- ScaleData(so, features = all.genes)
 so <- RunPCA(so, features = VariableFeatures(object = so))
@@ -89,9 +89,7 @@ saveRDS(so, file = "output/pig_UMAP_new.rds")
 # Checkpoint ####
 so = readRDS("output/pig_UMAP_new.rds")
 
-#Manual annotation of genes
-manann = read.csv("manann2.csv",header = T)
-#geneold = manann$Gene
+# Manual annotation of orthologs of some important genes
 geneold = c('ENSSSCG00045037762',
             'ENSSSCG00045008562',
             'ENSSSCG00045011271',
@@ -123,7 +121,7 @@ geneold = c('ENSSSCG00045037762',
             'ENSSSCG00045038038',
             'ENSSSCG00045009746',
             'ENSSSCG00045002714')
-# genenew = manann$Gene_name
+
 genenew = c('LRRC43',
             'FN1',
             'EGF7',
@@ -177,7 +175,6 @@ for (i in 1:length(geneold)){
   print(genenew[i] %in% row.names(so@assays$RNA@data))
 }
 
-
 features = so@assays$RNA@var.features
 for (i in length(geneold)){
   features[features == geneold[i]] = genenew[i]
@@ -187,7 +184,7 @@ row.names(so@assays$RNA@counts) = rnames
 row.names(so@assays$RNA@data) = rnames
 
 
-#Manual annotation of genes SECOND TIME
+# Manual annotation of orthologs of some important genes - SECOND TIME
 manann = read.csv("manann3.csv",header = T)
 geneold = manann$Gene
 genenew = manann$Gene_name
