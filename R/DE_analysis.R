@@ -3,6 +3,8 @@ library(Seurat)
 library(dplyr)
 library(ggplot2)
 library(readxl)
+library(ComplexHeatmap)
+library(colorRamp2)
 
 runedger = function(x,y){
   #x = Seurat Object
@@ -30,7 +32,7 @@ runedger = function(x,y){
 
 so = readRDS("output/pig_v3.rds")
 
-# Between Exercised and Sedentary ####
+# DE Between Exercised and Sedentary ####
 y='Fibroblasts'
 runedger(so,'T cells')
 runedger(so,'Beige adipocytes')
@@ -52,7 +54,7 @@ y = 'Fibroblasts'
 y = 'Erythroid cells'
 y = 'Mesenchymal cells'
 
-
+# Dotplots 
 name = paste("EdgeR/EdgeR_",y,"_new.csv",sep="")
 et = read.csv(name)
 et = et[order(et$PValue),]
@@ -73,7 +75,6 @@ DotPlot(object = soforDE_dot, features = unique(et$X),group.by = "Exercised",
   coord_flip()
 dev.off()
 
-
 y = 'Beige adipocytes'
 y = 'B cells'
 y = 'Endothelial cells'
@@ -81,47 +82,7 @@ y = 'Smooth muscle cells'
 y = 'Macrophages'
 
 
-#Marker genes
-soformarkers = subset(so,idents = c("Erythroid cells","Mesenchymal cells","Fibroblasts"), invert=TRUE)
-so.markers <- FindAllMarkers(soformarkers, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
-
-marker_genes = read_xls("PigCellTypeMarkers_11232022.xls")
-labels = read_xls("PigCellTypeMarkers_11232022.xls")
-labels = labels$Annotations
-labels = labels[!is.na(labels)]
-marker_genes$Cluster = marker_genes$Cluster+1
-cell_types = c()
-for (i in marker_genes$Cluster){
-  cell_types = append(cell_types,labels[i])
-}
-marker_genes$Cluster = cell_types
-marker_genes = subset(marker_genes,marker_genes$Cluster != "Unknown")
-marker_genes = marker_genes %>%
-  group_by(Cluster) %>%
-  slice_max(n = 5, order_by = avg_log2FC)
-
-jpeg('output/Pig_Dotplot_DEGs.jpeg',width = 800, height = 1200, quality = 100,pointsize = 100)
-DotPlot(object = soformarkers, features = unique(marker_genes$M.Genesnew))+
-  ggtitle('nFeature Genes vs Cell Type')+
-  theme(axis.title = element_text(size = 25),
-        plot.title = element_text(color="red", size=30),
-        axis.text = element_text(size = 15),
-        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
-        legend.text = element_text(size = 15),
-        legend.key.size = unit(1, 'cm'))+
-  coord_flip()
-dev.off()
-
-write.csv(marker_genes,"PigMarkers.csv")
-
-Idents(soformarkers)
-levels(soformarkers)
-as.character(levels(soformarkers))
-
-
-
-
-# Between Occluded and Non-occluded ####
+# DE Between Occluded and Non-occluded ####
 
 ## Exercised
 runedger = function(x,y){
@@ -171,6 +132,7 @@ y = 'Fibroblasts'
 y = 'Erythroid cells'
 y = 'Mesenchymal cells'
 
+# Dotplots 
 name = paste("EdgeR/Ex/EdgeR_",y,"_new_n-o.csv",sep="")
 et = read.csv(name)
 et = et[order(et$PValue),]
@@ -229,6 +191,7 @@ y = 'Fibroblasts'
 y = 'Erythroid cells'
 y = 'Mesenchymal cells'
 
+# Dotplots 
 name = paste("EdgeR/sed/EdgeR_",y,"_n-o.csv",sep="")
 et = read.csv(name)
 et = et[order(et$PValue),]
@@ -287,7 +250,7 @@ runedger(so,'Fibroblasts')
 runedger(so,'Erythroid cells')
 runedger(so,'Mesenchymal cells')
 
-
+# Dotplots 
 for (i in unique(so$cell_types)){
   name = paste0("EdgeR/NOcc/EdgeR_",i,"_NOcc.csv",sep="")
   et = read.csv(name)
@@ -346,6 +309,7 @@ runedger(so,'Fibroblasts')
 runedger(so,'Erythroid cells')
 runedger(so,'Mesenchymal cells')
 
+# Dotplots 
 for (i in unique(so$cell_types)){
   if ( i != 'Mesenchymal cells'){
     print(i)
@@ -368,8 +332,7 @@ for (i in unique(so$cell_types)){
   }
 }
 
-# Number of DEGs plot
-
+# Number of DEGs Heatmap
 y = c('Beige adipocytes','T cells','B cells','Endothelial cells',
       'Smooth muscle cells','Macrophages','Fibroblasts','Erythroid cells',
       'Mesenchymal cells')
@@ -403,11 +366,8 @@ for(i in 1:length(y)){
   }
 }
 
+# Heatmap
 DEG_Heat = na.omit(DEG_Heat)
-
-library(ComplexHeatmap)
-library(colorRamp2)
-
 col_fun = colorRamp2(c(0, 5000), c("white", "#F68282"))
 Heatmap(DEG_Heat, name = "DEGs",col = col_fun, cluster_columns = F, cluster_rows = F,
         cell_fun = function(j, i, x, y, width, height, fill) {
