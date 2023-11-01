@@ -69,21 +69,6 @@ so <- FindClusters(so, resolution = 0.5)
 so <- RunUMAP(so, dims = 1:10)
 DimPlot(so, reduction = "umap")
 
-## By batches
-jpeg('output/Pig_Cluster_Batches.jpeg',width = 1200, height = 1200, quality = 100,pointsize = 100)
-DimPlot(so, reduction = "umap", label = F,
-        pt.size = 0.5, group.by = 'Batches')+
-  ggtitle('UMAP by Batches')+
-  geom_text(aes(x = 3, y = -4.5, label = "N-Ex"),size = 8)+
-  geom_text(aes(x = 7, y = 1, label = "N-Sed"),size = 8)+
-  geom_text(aes(x = -3.5, y = -6, label = "O-Ex"),size = 8)+
-  geom_text(aes(x = 0.7, y = 2, label = "O-Sed"),size = 8)+
-  theme(axis.title = element_text(size = 30),
-        plot.title = element_text(size=30),
-        axis.text = element_text(size = 20),
-        legend.text = element_text(size = 20),
-        legend.key.size = unit(1.5, 'cm'))
-dev.off()
 saveRDS(so, file = "output/pig_UMAP_new.rds")
 
 # Checkpoint ####
@@ -216,7 +201,7 @@ saveRDS(so, file = "output/pig_UMAP_clustered_new.rds")
 # Checkpoint ####
 so = readRDS("output/pig_UMAP_clustered_new.rds")
 
-#Find marker genes
+# Find marker genes
 cluster0.markers <- FindMarkers(so, ident.1 = 0, min.pct = 0.25)
 Marker.genes = head(cluster0.markers, n = 10)
 Marker.genes[['Cluster']] = 0
@@ -229,9 +214,9 @@ for (i in 1:16){
 }
 
 write.csv(Marker.genes,"PigCellTypeMarkers.csv")
-marker_genes = read.csv("PigMarkers.csv")
+marker_genes = read.csv("PigCellTypeMarkers.csv")
 
-## Celltype annotation
+# Celltype annotation
 labels = read_xls("PigCellTypeMarkers_11232022.xls")
 labels = labels$Annotations
 labels = labels[!is.na(labels)]
@@ -241,7 +226,7 @@ for (i in so[["seurat_clusters"]]){
 }
 so[["cell_types"]] = cell_types
 
-#Removing 1 and 11 Clusters
+## Removing 1 and 11 Clusters
 Idents(so) = "cell_types"
 so = subset(so, idents = "Unknown", invert=TRUE)
 
@@ -252,12 +237,7 @@ saveRDS(so, file = "output/pig_v3.rds")
 # Checkpoint ####
 so = readRDS('output/pig_v3.rds')
 
-#Batch Visualization
-jpeg('output/Pig_batches_final.jpeg',width = 720, height = 540)
-DimPlot(so, reduction = "umap", label = TRUE, repel = TRUE, label.size = 5, pt.size = 0.5, group.by = 'Batches')
-dev.off()
-
-#Cluster Visualization
+# Cluster Visualization
 jpeg('Results/9-18-23_Publication_Figures//Pig_cluster_Celltype.jpeg',width = 2000, height = 2000, quality = 100,pointsize = 10)
 DimPlot(so, reduction = "umap", pt.size = 3, group.by = 'cell_types',)+
   geom_text(aes(x = 9, y = -3.7, label = "B cells"),size = 20)+
@@ -311,12 +291,12 @@ DimPlot(So_endo, reduction = "umap", label.size = 5, pt.size = 5, group.by = 'Ba
 dev.off()
 
 #Violin plots showing nFeature_RNA of cells
-jpeg('output/Pig_vln_celltype.jpeg',width = 1000, height = 800, quality = 100,pointsize = 100)
+jpeg('Other_Figures/Pig_vln_celltype.jpeg',width = 1000, height = 800, quality = 100,pointsize = 100)
 VlnPlot(so, features = c("nFeature_RNA"), split.by = "Exercised",pt.size = 0)
 dev.off()
 
 #Box plots showing number of Feature genes detected in each cell type
-jpeg('output/Pig_Boxplot_nFeatures.jpeg',width = 1200, height = 800, quality = 100,pointsize = 100)
+jpeg('Other_Figures/Pig_Boxplot_nFeatures.jpeg',width = 1200, height = 800, quality = 100,pointsize = 100)
 Percelltype = ggplot(so@meta.data, aes(x = nFeature_RNA, y = cell_types, fill=Exercised)) +
   coord_flip() +
   geom_boxplot(outlier.colour="black", outlier.shape=16, outlier.size=0, notch=FALSE)+
@@ -435,7 +415,7 @@ dev.off()
 so = readRDS("output/pig_v3.rds")
 so_foranno = subset(so, subset = cell_types == 'Mesenchymal cells')
 Batches = so_foranno$Batches
-source("../Codes/scType_anno.R")
+source("../Code/scType_anno.R")
 so_foranno = Annotate_cells(so_foranno@assays$RNA@counts,
                             res = 1, tissue = 'Heart', Scale = T)
 so_foranno$Batches = factor(Batches)
@@ -443,12 +423,11 @@ Idents(object = so_foranno) <- "scType_anno"
 DimPlot(so_foranno, reduction = "umap", pt.size = 1, label = F, repel = TRUE, group.by = 'scType_anno')
 
 levels(so_foranno)
-new_names = c("Erythroblasts","Stromal cells","Epicardial fat cells","Epicardial fat cells",
+new_names = c("Erythroblasts", "Stromal cells", "Epicardial fat cells", "Epicardial fat cells",
               "Endocardial cells")
 names(new_names) <- levels(so_foranno)
 so_renamed <- RenameIdents(so_foranno, new_names)
 so_renamed$new_names = so_renamed@active.ident
-#so_renamed = subset(so_renamed, subset = new_names == c("Erythroblasts","Stromal cells","Epicardial fat cells","Endocardial cells"))
 DimPlot(so_renamed, reduction = "umap", pt.size = 1, label = F, repel = TRUE)
 
 png('Results/10-10-23_Publication_Figures/Mesenchymal Bar PLot.png', height = 4, width = 8,
