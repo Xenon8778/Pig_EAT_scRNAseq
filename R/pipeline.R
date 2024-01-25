@@ -1,8 +1,6 @@
 library(Seurat)
 library(stringi)
 library(dplyr)
-library(SingleR)
-library(celldex)
 library(readxl)
 library(ggplot2)
 library(SeuratDisk)
