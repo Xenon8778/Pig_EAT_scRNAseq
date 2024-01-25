@@ -366,6 +366,16 @@ VlnPlot(so, features, stack = TRUE, sort = TRUE, flip = TRUE) +
         axis.title = element_text(size = 70))
 dev.off()
 
+jpeg('Results/9-18-23_Publication_Figures/Cellchat_genes.jpg',width = 10,
+     height = 10, res = 300, units = 'in')
+VlnPlot(so,features =c('IGF1','IGF1R','NCAM1','NCAM2','FGFR1','PECAM1','PECAM1'),
+        group.by = 'cell_types', split.by = 'Batches', pt.size = 0.1,
+        idents = c('Beige adipocytes','Endothelial cells','Fibroblasts',
+                   'Smooth muscle cells','T cells'),
+        stack = T, flip = T, fill.by = 'ident',
+        cols = c("#F68282", "#7CAE00", "#00BFC4","#C77CFF"))+
+  geom_boxplot(width = 0.2, position = position_dodge(0.9), outlier.size = 0.3)
+dev.off()
 
 
 # Checkpoint ####
