@@ -55,7 +55,7 @@ y = 'Mesenchymal cells'
 
 name = paste("EdgeR/EdgeR_",y,"_new.csv",sep="")
 et = read.csv(name)
-et = et[order(et$PValue),]
+et = et %>% arrange(PValue_Adj) %>% filter( PValue_Adj < 0.05)
 et = et[1:10,]
 soforDE_dot = subset(so,idents = c(y))
 n1 = paste("Results/2-6-23_Poster_Figures/EdgeR/EdgeR_Dotplot_",y,".jpeg",sep="")
@@ -173,7 +173,7 @@ y = 'Mesenchymal cells'
 
 name = paste("EdgeR/Ex/EdgeR_",y,"_new_n-o.csv",sep="")
 et = read.csv(name)
-et = et[order(et$PValue),]
+et = et %>% arrange(PValue_Adj) %>% filter( PValue_Adj < 0.05)
 et = et[1:10,]
 soforDE_dot = subset(so,idents = c(y), subset = Exercised == "Ex")
 n1 = paste("Results/Finalised_EdgeR/Ex_Dotplot_",y,".jpeg",sep="")
@@ -231,7 +231,7 @@ y = 'Mesenchymal cells'
 
 name = paste("EdgeR/sed/EdgeR_",y,"_n-o.csv",sep="")
 et = read.csv(name)
-et = et[order(et$PValue),]
+et = et %>% arrange(PValue_Adj) %>% filter( PValue_Adj < 0.05)
 et = et[1:10,]
 soforDE_dot = subset(so,idents = c(y), subset = Exercised == "Sed")
 n1 = paste("Results/Finalised_EdgeR/Sed/Sed_Dotplot_",y,".jpeg",sep="")
@@ -291,7 +291,7 @@ runedger(so,'Mesenchymal cells')
 for (i in unique(so$cell_types)){
   name = paste0("EdgeR/NOcc/EdgeR_",i,"_NOcc.csv",sep="")
   et = read.csv(name)
-  et = et[order(et$PValue),]
+  et = et %>% arrange(PValue_Adj) %>% filter( PValue_Adj < 0.05)
   et = et[1:10,]
   soforDE_dot = subset(so,idents = c(i), subset = Batches == c("N-Ex","N-Sed"))
   n1 = paste0("EdgeR/NOcc/Dotplot_",i,".jpeg",sep="")
@@ -351,7 +351,7 @@ for (i in unique(so$cell_types)){
     print(i)
     name = paste0("EdgeR/Occ/EdgeR_",i,"_Occ.csv",sep="")
     et = read.csv(name)
-    et = et[order(et$PValue),]
+    et = et %>% arrange(PValue_Adj) %>% filter( PValue_Adj < 0.05)
     et = et[1:10,]
     soforDE_dot = subset(so,idents = c(i), subset = Batches == c("O-Ex","O-Sed"))
     n1 = paste0("EdgeR/Occ/Dotplot_",i,".jpeg")
