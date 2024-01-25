@@ -1,3 +1,4 @@
+Single-cell RNA seq analysis of Pig Epicardial Adipose Tissue 
 # Pig Epicardial Adipose Tissue scRNAseq
 This repository contains the codes for processing the single-cell RNA sequencing data of Epicardial Adipose Tissue (EAT) from Sus scrofa (Pig). Animals were divided into two exercise (sedentary vs exercised) and two coronary artery (non-occluded and occluded) treatment groups.
 
