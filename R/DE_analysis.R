@@ -23,6 +23,8 @@ runedger = function(x,y){
   d1 <- estimateCommonDisp(dge, verbose=T)
   d1 <- estimateTagwiseDisp(d1)
   et <- exactTest(d1, pair=c("Ex","Sed"))
+  et$table = et$table %>% mutate(PValue_Adj = p.adjust (PValue, method='BH')) %>%
+    arrange(PValue_Adj)
   name = paste("EdgeR/EdgeR_",y,"_new.csv",sep="")
   write.csv(et,name)
   topTags(et, n=10)
@@ -42,43 +44,26 @@ runedger(so,'Fibroblasts')
 runedger(so,'Erythroid cells')
 runedger(so,'Mesenchymal cells')
 
-y = 'Beige adipocytes'
-y = 'T cells'
-y = 'B cells'
-y = 'Endothelial cells'
-y = 'Smooth muscle cells'
-y = 'Macrophages'
-y = 'Fibroblasts'
-y = 'Erythroid cells'
-y = 'Mesenchymal cells'
 
+for (i in unique(so$cell_types)){
+  print(i)
+  name = paste0("EdgeR/DE_Ex_Sed/EdgeR_",i,"_new.csv",sep="")
+  et = read.csv(name)
+  et = et %>% arrange(PValue_Adj) %>% filter( PValue_Adj < 0.05)
+  et = et[1:10,]
+  soforDE_dot = so
+  n1 = paste0("EdgeR/DE_Ex_Sed/EdgeR_Dotplot_",i,".png")
 
-name = paste("EdgeR/EdgeR_",y,"_new.csv",sep="")
-et = read.csv(name)
-et = et %>% arrange(PValue_Adj) %>% filter( PValue_Adj < 0.05)
-et = et[1:10,]
-soforDE_dot = subset(so,idents = c(y))
-n1 = paste("Results/2-6-23_Poster_Figures/EdgeR/EdgeR_Dotplot_",y,".jpeg",sep="")
-jpeg(n1,width = 1500, height = 2000, quality = 100,pointsize = 10)
-DotPlot(object = soforDE_dot, features = unique(et$X),group.by = "Exercised",
-        dot.scale = 50,cols = c("lightgrey", "#FF68A1"))+
-  ggtitle(paste(y))+
-  theme(axis.title = element_text(size = 50, face="bold"),
-        plot.title = element_text(size = 70, face="bold", hjust = 0.5),
-        axis.text = element_text(size = 50),
-        axis.text.y = element_text(size = 40),
-        legend.text = element_text(size = 40),
-        legend.title = element_text(size = 40),
-        legend.key.size = unit(2, 'cm'))+
-  coord_flip()
-dev.off()
-
-
-y = 'Beige adipocytes'
-y = 'B cells'
-y = 'Endothelial cells'
-y = 'Smooth muscle cells'
-y = 'Macrophages'
+  png(n1,width = 6, height = 7, res = 300, units = 'in')
+  g = DotPlot(object = soforDE_dot, features = unique(et$X),group.by = "Exercised",
+              scale = T, cols = c("lightgrey", "#FF68A1"), dot.scale = 10)+
+    ggtitle(paste(i))+
+    theme(axis.title = element_text(face="bold"),
+          plot.title = element_text(face="bold", hjust = 0.5))+
+    coord_flip()
+  plot(g)
+  dev.off()
+}
 
 
 #Marker genes
@@ -142,8 +127,10 @@ runedger = function(x,y){
   dge <- calcNormFactors(dge)
   d1 <- estimateCommonDisp(dge, verbose=T)
   d1 <- estimateTagwiseDisp(d1)
-  et <- exactTest(d1, pair=c("N-Ex","O-Ex"))
-  name = paste("EdgeR/Ex/EdgeR_",y,"_new_n-o.csv",sep="")
+  et <- exactTest(d1, pair=c("O-Ex","N-Ex"))
+  et$table = et$table %>% mutate(PValue_Adj = p.adjust (PValue, method='BH')) %>%
+    arrange(PValue_Adj)
+  name = paste("EdgeR/Ex/Revised/EdgeR_",y,"_Ex_O-N.csv",sep="")
   write.csv(et,name)
   topTags(et, n=10)
 }
@@ -158,38 +145,29 @@ runedger(so,'Fibroblasts')
 runedger(so,'Erythroid cells')
 runedger(so,'Mesenchymal cells')
 
-x=so
-y='Fibroblasts'
 
-y = 'Beige adipocytes'
-y = 'T cells'
-y = 'B cells'
-y = 'Endothelial cells'
-y = 'Smooth muscle cells'
-y = 'Macrophages'
-y = 'Fibroblasts'
-y = 'Erythroid cells'
-y = 'Mesenchymal cells'
+i = 'Mesenchymal cells'
+for (i in unique(so$cell_types)){
+  if ( i != 'Mesenchymal cells'){
+    print(i)
+    name = paste0("EdgeR/Ex/Revised/EdgeR_",i,"_Ex_O-N.csv",sep="")
+    et = read.csv(name)
+    et = et %>% arrange(PValue_Adj) %>% filter( PValue_Adj < 0.05)
+    et = et[1:10,]
+    soforDE_dot = subset(so,idents = c(i), subset = Batches == c("O-Ex","N-Ex"))
+    n1 = paste0("EdgeR/Ex/Revised/Dotplot_",i,".png")
 
-name = paste("EdgeR/Ex/EdgeR_",y,"_new_n-o.csv",sep="")
-et = read.csv(name)
-et = et %>% arrange(PValue_Adj) %>% filter( PValue_Adj < 0.05)
-et = et[1:10,]
-soforDE_dot = subset(so,idents = c(y), subset = Exercised == "Ex")
-n1 = paste("Results/Finalised_EdgeR/Ex_Dotplot_",y,".jpeg",sep="")
-jpeg(n1,width = 1500, height = 2000, quality = 100,pointsize = 10)
-DotPlot(object = soforDE_dot, features = unique(et$X),group.by = "Batches",
-        dot.scale = 50,cols = c("lightgrey", "#FF68A1"))+
-  ggtitle(paste(y))+
-  theme(axis.title = element_text(size = 50, face="bold"),
-        plot.title = element_text(size = 70, face="bold", hjust = 0.5),
-        axis.text = element_text(size = 50),
-        axis.text.y = element_text(size = 40),
-        legend.text = element_text(size = 40),
-        legend.title = element_text(size = 40),
-        legend.key.size = unit(2, 'cm'))+
-  coord_flip()
-dev.off()
+    png(n1,width = 6, height = 7, res = 300, units = 'in')
+    g = DotPlot(object = soforDE_dot, features = unique(et$X),group.by = "Batches",
+                scale = T, cols = c("lightgrey", "#FF68A1"), dot.scale = 10)+
+      ggtitle(paste(i))+
+      theme(axis.title = element_text(face="bold"),
+            plot.title = element_text(face="bold", hjust = 0.5))+
+      coord_flip()
+    plot(g)
+    dev.off()
+  }
+}
 
 ## Sedentary
 
@@ -213,41 +191,36 @@ runedger = function(x,y){
   dge <- calcNormFactors(dge)
   d1 <- estimateCommonDisp(dge, verbose=T)
   d1 <- estimateTagwiseDisp(d1)
-  et <- exactTest(d1, pair=c("N-Sed","O-Sed"))
-  name = paste("EdgeR/Sed/EdgeR_",y,"_n-o.csv",sep="")
+  et <- exactTest(d1, pair=c("O-Sed","N-Sed"))
+  et$table = et$table %>% mutate(PValue_Adj = p.adjust (PValue, method='BH')) %>%
+    arrange(PValue_Adj)
+  name = paste("EdgeR/Sed/Revised/EdgeR_",y,"_Sed_O-N.csv",sep="")
   write.csv(et,name)
   topTags(et, n=10)
 }
 
-y = 'Beige adipocytes'
-y = 'T cells'
-y = 'B cells'
-y = 'Endothelial cells'
-y = 'Smooth muscle cells'
-y = 'Macrophages'
-y = 'Fibroblasts'
-y = 'Erythroid cells'
-y = 'Mesenchymal cells'
 
-name = paste("EdgeR/sed/EdgeR_",y,"_n-o.csv",sep="")
-et = read.csv(name)
-et = et %>% arrange(PValue_Adj) %>% filter( PValue_Adj < 0.05)
-et = et[1:10,]
-soforDE_dot = subset(so,idents = c(y), subset = Exercised == "Sed")
-n1 = paste("Results/Finalised_EdgeR/Sed/Sed_Dotplot_",y,".jpeg",sep="")
-jpeg(n1,width = 1500, height = 2000, quality = 100,pointsize = 10)
-DotPlot(object = soforDE_dot, features = unique(et$X),group.by = "Batches",
-        dot.scale = 50,cols = c("lightgrey", "#FF68A1"))+
-  ggtitle(paste(y))+
-  theme(axis.title = element_text(size = 50, face="bold"),
-        plot.title = element_text(size = 70, face="bold", hjust = 0.5),
-        axis.text = element_text(size = 50),
-        axis.text.y = element_text(size = 40),
-        legend.text = element_text(size = 40),
-        legend.title = element_text(size = 40),
-        legend.key.size = unit(2, 'cm'))+
-  coord_flip()
-dev.off()
+for (i in unique(so$cell_types)){
+  if ( i != 'Fibroblasts'){
+    print(i)
+    name = paste0("EdgeR/Sed/Revised/EdgeR_",i,"_Sed_O-N.csv",sep="")
+    et = read.csv(name)
+    et = et %>% arrange(PValue_Adj) %>% filter( PValue_Adj < 0.05)
+    et = et[1:10,]
+    soforDE_dot = subset(so,idents = c(i), subset = Batches == c("O-Sed","N-Sed"))
+    n1 = paste0("EdgeR/Sed/Revised/Dotplot_",i,".png")
+
+    png(n1,width = 6, height = 7, res = 300, units = 'in')
+    g = DotPlot(object = soforDE_dot, features = unique(et$X),group.by = "Batches",
+                scale = T, cols = c("lightgrey", "#FF68A1"), dot.scale = 10)+
+      ggtitle(paste(i))+
+      theme(axis.title = element_text(face="bold"),
+            plot.title = element_text(face="bold", hjust = 0.5))+
+      coord_flip()
+    plot(g)
+    dev.off()
+  }
+}
 
 # Between Exercised and Sedentary ####
 
@@ -272,7 +245,9 @@ runedger = function(x,y){
   d1 <- estimateCommonDisp(dge, verbose=T)
   d1 <- estimateTagwiseDisp(d1)
   et <- exactTest(d1, pair=c("N-Ex","N-Sed"))
-  name = paste("EdgeR/NOcc/EdgeR_",y,"_NOcc.csv",sep="")
+  et$table = et$table %>% mutate(PValue_Adj = p.adjust (PValue, method='BH')) %>%
+    arrange(PValue_Adj)
+  name = paste("EdgeR/NOcc/Revised/EdgeR_",y,"_NOcc_E-S.csv",sep="")
   write.csv(et,name)
   topTags(et, n=10)
 }
@@ -289,12 +264,12 @@ runedger(so,'Mesenchymal cells')
 
 
 for (i in unique(so$cell_types)){
-  name = paste0("EdgeR/NOcc/EdgeR_",i,"_NOcc.csv",sep="")
+  name = paste0("EdgeR/NOcc/Revised/EdgeR_",i,"_NOcc_E-S.csv",sep="")
   et = read.csv(name)
   et = et %>% arrange(PValue_Adj) %>% filter( PValue_Adj < 0.05)
   et = et[1:10,]
   soforDE_dot = subset(so,idents = c(i), subset = Batches == c("N-Ex","N-Sed"))
-  n1 = paste0("EdgeR/NOcc/Dotplot_",i,".jpeg",sep="")
+  n1 = paste0("EdgeR/NOcc/Revised/Dotplot_",i,".jpeg",sep="")
 
   png(n1,width = 6, height = 7, res = 300, units = 'in')
   g= DotPlot(object = soforDE_dot, features = unique(et$X),group.by = "Batches",
@@ -331,7 +306,9 @@ runedger = function(x,y){
   d1 <- estimateCommonDisp(dge, verbose=T)
   d1 <- estimateTagwiseDisp(d1)
   et <- exactTest(d1, pair=c("O-Ex","O-Sed"))
-  name = paste("EdgeR/Occ/EdgeR_",y,"_Occ.csv",sep="")
+  et$table = et$table %>% mutate(PValue_Adj = p.adjust (PValue, method='BH')) %>%
+    arrange(PValue_Adj)
+  name = paste("EdgeR/Occ/Revised/EdgeR_",y,"_Occ_E-S.csv",sep="")
   write.csv(et,name)
   topTags(et, n=10)
 }
@@ -347,26 +324,24 @@ runedger(so,'Erythroid cells')
 runedger(so,'Mesenchymal cells')
 
 for (i in unique(so$cell_types)){
-  if ( i != 'Mesenchymal cells'){
-    print(i)
-    name = paste0("EdgeR/Occ/EdgeR_",i,"_Occ.csv",sep="")
-    et = read.csv(name)
-    et = et %>% arrange(PValue_Adj) %>% filter( PValue_Adj < 0.05)
-    et = et[1:10,]
-    soforDE_dot = subset(so,idents = c(i), subset = Batches == c("O-Ex","O-Sed"))
-    n1 = paste0("EdgeR/Occ/Dotplot_",i,".jpeg")
+  name = paste0("EdgeR/Occ/Revised/EdgeR_",i,"_Occ_E-S.csv",sep="")
+  et = read.csv(name)
+  et = et %>% arrange(PValue_Adj) %>% filter( PValue_Adj < 0.05)
+  et = et[1:10,]
+  soforDE_dot = subset(so,idents = c(i), subset = Batches == c("O-Ex","O-Sed"))
+  n1 = paste0("EdgeR/Occ/Revised/Dotplot_",i,".jpeg",sep="")
 
-    png(n1,width = 6, height = 7, res = 300, units = 'in')
-    g= DotPlot(object = soforDE_dot, features = unique(et$X),group.by = "Batches",
-               scale = F, cols = c("lightgrey", "#FF68A1"), dot.scale = 10)+
-      ggtitle(paste(i))+
-      theme(axis.title = element_text(face="bold"),
-            plot.title = element_text(face="bold", hjust = 0.5))+
-      coord_flip()
-    print(g)
-    dev.off()
-  }
+  png(n1,width = 6, height = 7, res = 300, units = 'in')
+  g= DotPlot(object = soforDE_dot, features = unique(et$X),group.by = "Batches",
+             scale = F, cols = c("lightgrey", "#FF68A1"), dot.scale = 10)+
+    ggtitle(paste(i))+
+    theme(axis.title = element_text(face="bold"),
+          plot.title = element_text(face="bold", hjust = 0.5))+
+    coord_flip()
+  print(g)
+  dev.off()
 }
+
 # Number of DEGs plot ####
 
 # Occ and Non-Occ
